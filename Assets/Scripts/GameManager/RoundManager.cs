@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RoundManager : MonoBehaviour
@@ -6,16 +7,16 @@ public class RoundManager : MonoBehaviour
 
     [SerializeField] private Enemy enemy;
     [SerializeField] private PlayerController playerController;
-    [SerializeField] private ShadowPlayer shadowPlayer;
+    [SerializeField] private ShadowPlayer[] shadowPlayers;
     [SerializeField] private PlayerRecorder playerRecorder;
 
 
     [SerializeField] private float xClamp = 5f;
     [SerializeField] private float zClamp = 5f;
     [SerializeField] private float minimumDistance = 3f;
-   
-    private ReplayData lastRoundRecording;
-    public ReplayData LastRoundRecording => lastRoundRecording;
+
+    private List<ReplayData> replayDataList = new List<ReplayData>();
+    
 
     private int currentEnemyCount;
     private int currentRound = 1;
@@ -52,14 +53,16 @@ public class RoundManager : MonoBehaviour
     private void CompleteRound()
     {
         Debug.Log($"Round {currentRound} Complete");
-       
-        lastRoundRecording = playerRecorder.StopRecording();
-        if (lastRoundRecording != null)
+
+        ReplayData recording = playerRecorder.StopRecording();
+
+        if (recording != null)
         {
-            Debug.Log
-            (
-                $"Round {currentRound} recording saved: " +
-                $"{lastRoundRecording.frames.Count} frames"
+            replayDataList.Add(recording);
+
+            Debug.Log(
+                $"Round {currentRound} recording saved. " +
+                $"Total recordings: {replayDataList.Count}"
             );
         }
         ObjectPooling.instance.DeactivateAllBullets();
@@ -92,9 +95,17 @@ public class RoundManager : MonoBehaviour
 
         enemy.ResetEnemyPosition(enemyPosition);
 
-        if (currentRound > 1 && lastRoundRecording != null)
+        int shadowsToActivate = currentRound - 1;
+
+        for (int i = 0; i < shadowsToActivate; i++)
         {
-            shadowPlayer.StartReplay(lastRoundRecording);
+            if (i >= shadowPlayers.Length)
+                break;
+
+            if (i >= replayDataList.Count)
+                break;
+            Debug.Log($"Shadow {i + 1} using recording {i + 1}");
+            shadowPlayers[i].StartReplay(replayDataList[i]);
         }
 
         playerRecorder.StartRecording();

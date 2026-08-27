@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     public Vector2 MoveInput { get; private set; }
 
     private bool isDead;
+    public bool IsDead => isDead;
 
     private void Awake()
     {

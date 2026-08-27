@@ -102,14 +102,8 @@ public class Bullet : MonoBehaviour
         // SHADOW BULLET → PLAYER
         // --------------------------------
         if (bulletType == BulletType.Shadow &&
-            collision.gameObject.CompareTag("Player"))
+    collision.gameObject.CompareTag("Player"))
         {
-            // Shadow also needs to bounce first.
-            if (!hasBounced)
-            {
-                return;
-            }
-
             PlayerController player =
                 collision.gameObject.GetComponent<PlayerController>();
 
@@ -119,6 +113,8 @@ public class Bullet : MonoBehaviour
             }
 
             gameObject.SetActive(false);
+
+            return;
         }
     }
 }

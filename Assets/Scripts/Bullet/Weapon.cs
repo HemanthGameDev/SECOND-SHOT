@@ -9,10 +9,12 @@ public class Weapon : MonoBehaviour
     public event Action<Vector3> OnShot;
 
     private InputSystem_Actions attackAction;
+    [SerializeField] private PlayerController playerController;
 
     private void Awake()
     {
         attackAction = new InputSystem_Actions();
+        
     }
 
     private void OnEnable()
@@ -27,6 +29,9 @@ public class Weapon : MonoBehaviour
 
     private void Update()
     {
+        if (playerController.IsDead)
+            return;
+
         if (attackAction.Player.Attack.WasPressedThisFrame())
         {
             Shoot();

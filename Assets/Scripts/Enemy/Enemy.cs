@@ -38,7 +38,7 @@ public class Enemy : MonoBehaviour
     //    gameObject.SetActive(true);
     //}
 
-    public void ResetEnemyPosition(Vector3 newPosition)
+    public void ResetEnemyPosition(Vector3 newPosition, Vector3 playerPosition)
     {
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
@@ -48,6 +48,14 @@ public class Enemy : MonoBehaviour
             transform.position.y,
             newPosition.z
         );
+
+        Vector3 directionToPlayer = playerPosition - transform.position;
+        directionToPlayer.y = 0f;
+
+        if (directionToPlayer.sqrMagnitude > 0.001f)
+        {
+            transform.forward = directionToPlayer.normalized;
+        }
 
         currentHealth = maxHealth;
         gameObject.SetActive(true);

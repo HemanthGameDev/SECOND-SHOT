@@ -45,18 +45,15 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = move;
     }
 
-    public void ResetPlayerPosition()
+    public void ResetPlayerPosition(Vector3 spawnPosition)
     {
-        float x = Random.Range(-xClamp, xClamp);
-        float z = Random.Range(-zClamp, zClamp);
-
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
         rb.position = new Vector3(
-            x,
+            spawnPosition.x,
             transform.position.y,
-            z
+            spawnPosition.z
         );
     }
 
@@ -75,5 +72,15 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Player Died");
 
         RoundManager.instance.PlayerDied();
+    }
+
+    public void ResetPlayer()
+    {
+        isDead = false;
+
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        gameObject.SetActive(true);
     }
 }

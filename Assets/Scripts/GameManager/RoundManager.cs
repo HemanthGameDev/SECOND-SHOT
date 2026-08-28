@@ -1,5 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class RoundManager : MonoBehaviour
 {
@@ -7,8 +9,15 @@ public class RoundManager : MonoBehaviour
 
     [SerializeField] private Enemy enemy;
     [SerializeField] private PlayerController playerController;
+    [SerializeField] private UIManager uiManager;
     [SerializeField] private ShadowPlayer[] shadowPlayers;
     [SerializeField] private PlayerRecorder playerRecorder;
+    [SerializeField] private Transform playerSpawn;
+    [SerializeField] private Transform enemySpawn;
+    [SerializeField] private TextMeshProUGUI roundText;
+    [SerializeField] private int maxShadows = 10;
+    private int MaxRounds => maxShadows + 1;
+
 
 
     [SerializeField] private float xClamp = 5f;
@@ -29,6 +38,7 @@ public class RoundManager : MonoBehaviour
     private void Start()
     {
         StartRound();
+       
     }
 
     private Vector3 GetRandomPosition()
@@ -52,6 +62,7 @@ public class RoundManager : MonoBehaviour
 
     private void CompleteRound()
     {
+
         Debug.Log($"Round {currentRound} Complete");
 
         ReplayData recording = playerRecorder.StopRecording();
@@ -67,6 +78,11 @@ public class RoundManager : MonoBehaviour
         }
         ObjectPooling.instance.DeactivateAllBullets();
 
+        if (currentRound >= MaxRounds)
+        {
+            uiManager.WinUI();
+            return;
+        }
         currentRound++;
        
         StartRound();
@@ -74,26 +90,40 @@ public class RoundManager : MonoBehaviour
 
     private void StartRound()
     {
+        roundText.text = $"Round: {currentRound} / {MaxRounds}";
         Debug.Log($"Starting Round {currentRound}");
 
         currentEnemyCount = 1;
 
-        playerController.ResetPlayerPosition();
-
-        Vector3 enemyPosition;
-
-        do
+        // ROUND 1 → fixed positions
+        if (currentRound == 1)
         {
-            enemyPosition = GetRandomPosition();
+            playerController.ResetPlayerPosition(playerSpawn.position);
+            enemy.ResetEnemyPosition(enemySpawn.position, playerController.transform.position);
+        }
+        // ROUND 2+ → random positions
+        else
+        {
+            Vector3 playerPosition = GetRandomPosition();
 
-        } while (
-            Vector3.Distance(
-                playerController.transform.position,
-                enemyPosition
-            ) < minimumDistance
-        );
+            playerController.ResetPlayerPosition(playerPosition);
 
-        enemy.ResetEnemyPosition(enemyPosition);
+            Vector3 enemyPosition;
+
+            do
+            {
+                enemyPosition = GetRandomPosition();
+
+            } while (
+                Vector3.Distance(
+                    playerController.transform.position,
+                    enemyPosition
+                ) < minimumDistance
+            );
+
+            enemy.ResetEnemyPosition(enemyPosition, playerController.transform.position);
+
+        }
 
         int shadowsToActivate = currentRound - 1;
 
@@ -104,7 +134,9 @@ public class RoundManager : MonoBehaviour
 
             if (i >= replayDataList.Count)
                 break;
+
             Debug.Log($"Shadow {i + 1} using recording {i + 1}");
+
             shadowPlayers[i].StartReplay(replayDataList[i]);
         }
 
@@ -113,13 +145,42 @@ public class RoundManager : MonoBehaviour
 
     public void PlayerDied()
     {
-        Debug.Log("Player died. Restarting round.");
+        Debug.Log("Player died. Game Over.");
+
+        playerRecorder.StopRecording();
 
         ObjectPooling.instance.DeactivateAllBullets();
 
-      
+        foreach (ShadowPlayer shadow in shadowPlayers)
+        {
+            shadow.gameObject.SetActive(false);
+        }
 
-        // We'll reset the enemy too.
-        // We'll handle the shadow state here as well later.
+        uiManager.GameOver();
+    }
+    public void RestartGame()
+    {
+        ObjectPooling.instance.DeactivateAllBullets();
+
+        // Deactivate all shadows
+        foreach (ShadowPlayer shadow in shadowPlayers)
+        {
+            shadow.gameObject.SetActive(false);
+        }
+
+        // Clear previous round recordings
+        replayDataList.Clear();
+
+        // Reset round
+        currentRound = 1;
+        currentEnemyCount = 1;
+
+        // Reset player state
+        playerController.gameObject.SetActive(true);
+
+        // We need to clear the dead state
+        playerController.ResetPlayer();
+
+        StartRound();
     }
 }

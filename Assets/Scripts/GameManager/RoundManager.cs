@@ -80,6 +80,13 @@ public class RoundManager : MonoBehaviour
 
         if (currentRound >= MaxRounds)
         {
+            foreach (ShadowPlayer shadow in shadowPlayers)
+            {
+                shadow.StopReplay();
+            }
+
+            ObjectPooling.instance.DeactivateAllBullets();
+
             uiManager.WinUI();
             return;
         }
@@ -153,7 +160,7 @@ public class RoundManager : MonoBehaviour
 
         foreach (ShadowPlayer shadow in shadowPlayers)
         {
-            shadow.gameObject.SetActive(false);
+            shadow.StopReplay();
         }
 
         uiManager.GameOver();

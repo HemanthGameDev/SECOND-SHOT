@@ -48,6 +48,16 @@ public class ShadowPlayer : MonoBehaviour
         gameObject.SetActive(true);
     }
 
+    public void StopReplay()
+    {
+        isReplaying = false;
+
+        if (rb == null)
+            return;
+
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
     private void FixedUpdate()
     {
         if (!isReplaying)
@@ -118,12 +128,5 @@ public class ShadowPlayer : MonoBehaviour
         bullet.Initialize(shootDirection);
     }
 
-    private void StopReplay()
-    {
-        isReplaying = false;
-
-        rb.linearVelocity = Vector3.zero;
-
-        Debug.Log("Shadow replay finished.");
-    }
+    
 }

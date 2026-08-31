@@ -57,6 +57,7 @@ public class Bullet : MonoBehaviour
         // --------------------------------
         if (collision.gameObject.CompareTag("Wall"))
         {
+            SpawnImpactVFX(collision);
             Vector3 normal = collision.contacts[0].normal;
 
             direction = Vector3.Reflect(direction, normal);
@@ -79,6 +80,7 @@ public class Bullet : MonoBehaviour
         if (bulletType == BulletType.Player &&
             collision.gameObject.CompareTag("Enemy"))
         {
+            SpawnImpactVFX(collision);
             // Direct shots are not allowed to kill the enemy.
             if (!hasBounced)
             {
@@ -104,6 +106,7 @@ public class Bullet : MonoBehaviour
         if (bulletType == BulletType.Shadow &&
     collision.gameObject.CompareTag("Player"))
         {
+            SpawnImpactVFX(collision);
             PlayerController player =
                 collision.gameObject.GetComponent<PlayerController>();
 
@@ -115,6 +118,26 @@ public class Bullet : MonoBehaviour
             gameObject.SetActive(false);
 
             return;
+        }
+    }
+
+    private void SpawnImpactVFX(Collision collision)
+    {
+        ContactPoint contact = collision.contacts[0];
+
+        if (bulletType == BulletType.Player)
+        {
+            ImpactVFXPool.instance.PlayPlayerImpact(
+                contact.point,
+                contact.normal
+            );
+        }
+        else if (bulletType == BulletType.Shadow)
+        {
+            ImpactVFXPool.instance.PlayShadowImpact(
+                contact.point,
+                contact.normal
+            );
         }
     }
 }
